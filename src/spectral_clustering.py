@@ -63,23 +63,14 @@ def spectral_clustering(X, k, n_clusters):
     affinity_matrix, neighbors = k_neighbors(X, k)
     degree = get_degree_matrix(neighbors)
     weights = get_weights(neighbors)
-    # graph_laplacian = K.T @ K
+
     graph_laplacian = degree - weights
     _, eigenvectors = np.linalg.eig(graph_laplacian)
     eigenvectors = np.real(eigenvectors)[:, :n_clusters]
-    # print(eigenvectors.shape)
-    cluster = KMeans(n_clusters)
-    s = cluster.fit(eigenvectors)
-    # print(eigenvectors.shape)
-    # k2 = 2
-    # centroids, memberships = k_means(eigenvectors, n_clusters)
-    # distances = pairwise_distances(X, centroids, metric="sqeuclidean")
-    # memberships = np.zeros((X.shape[0]), dtype=np.int64)
-    # np.argmin(distances, axis=1, out=memberships)
-    # print(centroids.shape)
 
-    # print(s.labels_.shape)
-    return s.labels_
+    centroids, memberships = k_means(eigenvectors, n_clusters)
+
+    return memberships
 
 
 gen_moons_with_noise = lambda x: make_moons(n_samples=1000, noise=x)
