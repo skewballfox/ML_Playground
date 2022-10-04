@@ -1,29 +1,13 @@
-from platform import node
 from sklearn.datasets import make_circles, make_moons
-from sklearn.neighbors import NearestNeighbors
+
 from sklearn.metrics import pairwise_distances
+from sklearn.cluster import KMeans
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.spatial import KDTree
+from k_means import k_means
 import math
 
-
-# class K_means:
-#     def __init__(X, k):
-#         # this is more or less a max size
-#         # the minus one is because one point is the center
-#         cluster_size = (len(X) // k) - 1
-#         self.centroids = []
-
-#         for i in np.random.choice(len(X), k):
-#             self.centroids.append(centroid(X[i], i, cluster_size))
-
-
-# class centroid:
-#     def __init__(point, index, cluster_size):
-#         self.center = point
-#         self.index = index
-#         self.members = np.empty(cluster_size)
+# from k_means import k_means
 
 
 def plot_data(X, y):
@@ -75,37 +59,44 @@ def get_weights(neighbors):
     return weights
 
 
-def k_means(eigenvectors, k):
-    print("yeet")
-    print(eigenvectors)
-    center_indices = np.zeros(k, dtype=np.int64)
-    center_values = np.zeros(
-        (k, 2), dtype=np.float64
-    )  # represents the centers of the k-means clusters
-    centroid_membership = np.zeros()
-
-
-def spectral_clustering(x, k):
-    affinity_matrix, neighbors = k_neighbors(x, k)
-    D = get_degree_matrix(neighbors)
-    W = get_weights(neighbors)
+def spectral_clustering(X, k, n_clusters):
+    affinity_matrix, neighbors = k_neighbors(X, k)
+    degree = get_degree_matrix(neighbors)
+    weights = get_weights(neighbors)
     # graph_laplacian = K.T @ K
-    graph_laplacian = D - W
+    graph_laplacian = degree - weights
     _, eigenvectors = np.linalg.eig(graph_laplacian)
-    k_means(eigenvectors, k)
+    eigenvectors = np.real(eigenvectors)[:, :n_clusters]
+    # print(eigenvectors.shape)
+    cluster = KMeans(n_clusters)
+    s = cluster.fit(eigenvectors)
+    # print(eigenvectors.shape)
+    # k2 = 2
+    # centroids, memberships = k_means(eigenvectors, n_clusters)
+    # distances = pairwise_distances(X, centroids, metric="sqeuclidean")
+    # memberships = np.zeros((X.shape[0]), dtype=np.int64)
+    # np.argmin(distances, axis=1, out=memberships)
+    # print(centroids.shape)
+
+    # print(s.labels_.shape)
+    return s.labels_
 
 
 gen_moons_with_noise = lambda x: make_moons(n_samples=1000, noise=x)
-gen_circles_with_noise = lambda x: make_circles(n_samples=1000, noise=x)
+gen_circles_with_noise = lambda x: make_circles(n_samples=1000, noise=x, factor=0.5)
 
 moon_noise = [0.15, 0.10, 0.01]
 circle_noise = [0.05, 0.03, 0.01]
 for i in range(3):
+    # matplotlib.use("QT5Agg")
     x_moon, y_moon = gen_moons_with_noise(moon_noise[i])
-    print(x_moon)
 
-    # plot_data(x_moon, y_moon)
-    spectral_clustering(x_moon, 22)
-    print(neighbors.max())
-    # print(KDTree.tree)
-    break
+    labels = spectral_clustering(x_moon, 50, 2)
+
+    plot_data(x_moon, labels)
+
+    x_circle, y_circle = gen_circles_with_noise(moon_noise[i])
+
+    labels = spectral_clustering(x_circle, 50, 2)
+
+    plot_data(x_circle, labels)
